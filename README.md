@@ -15,7 +15,7 @@ installer repository contains the Kubernetes/OpenShift deployment configurations
 to deploy OSAC components on your infrastructure.
 
 For detailed architecture, workflows, and design documentation, please refer to the
-[OSAC documentation repository](https://github.com/innabox/docs).
+[OSAC documentation repository](https://github.com/osac/docs).
 
 The OSAC platform provides:
 - **Self-service provisioning** for clusters and virtual machines through a governed API
@@ -179,7 +179,7 @@ Download the latest release and make it executable.
 ```bash
 # Adjust URL for the latest version as needed
 $ curl -L -o fulfillment-cli \
-    https://github.com/innabox/fulfillment-cli/releases/latest/download/fulfillment-cli-linux-amd64
+    https://github.com/osac/fulfillment-cli/releases/latest/download/fulfillment-cli-linux-amd64
 $ chmod +x fulfillment-cli
 
 # Optional: Move to your path
@@ -225,7 +225,7 @@ $ fulfillment-cli create hub \
 
 Once configured, you can use the fulfillment CLI to manage clusters and virtual machines.
 For detailed usage instructions and command reference, see the
-[fulfillment-cli documentation](https://github.com/innabox/fulfillment-cli).
+[fulfillment-cli documentation](https://github.com/osac/fulfillment-cli).
 
 ## Accessing Ansible Automation Platform
 
@@ -234,18 +234,18 @@ After deployment, you can access the AAP web interface to monitor jobs and manag
 ### Get the AAP URL
 
 ```bash
-$ oc get route -n <project-name> | grep innabox-aap
+$ oc get route -n <project-name> | grep osac-aap
 ```
 
-AAP routes will contain 'innabox-aap' in the name.
+AAP routes will contain 'osac-aap' in the name.
 
-> **Note:** The main AAP URL will be something like: `https://innabox-aap-<project-name>.apps.your-cluster.com`
+> **Note:** The main AAP URL will be something like: `https://osac-aap-<project-name>.apps.your-cluster.com`
 
 ### Get the AAP Admin Password
 
 ```bash
 # Extract the admin password
-$ oc extract secret/innabox-aap-admin-password -n <project-name> --to -
+$ oc extract secret/osac-aap-admin-password -n <project-name> --to -
 ```
 
 ### Login to AAP

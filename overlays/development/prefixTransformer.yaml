@@ -2,7 +2,7 @@ apiVersion: builtin
 kind: PrefixSuffixTransformer
 metadata:
   name: custom-prefixer
-prefix: "innabox-devel-"
+prefix: "osac-devel-"
 fieldSpecs:
   - kind: ClusterRole
     path: metadata/name

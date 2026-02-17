@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: innabox-devel
+namespace: osac-devel
 
 # This applies a name prefix to cluster-scoped resources (ClusterRoles,
 # ClusterRoleBindings) but does not modify namespaced resources.
@@ -36,37 +36,34 @@ secretGenerator:
     - license.zip=files/license.zip
   options:
     labels:
-      cloudkit.openshift.io/project: cloudkit-aap
+      osac.openshift.io/project: osac-aap
 
 - name: config-as-code-ig
   options:
     disableNameSuffixHash: true
   literals:
-    - AAP_EE_IMAGE=ghcr.io/osac-project/osac-aap:05d9dffc1392bb96a20618f2c900f65a2ac48cca
-    - AAP_PROJECT_GIT_URL="https://github.com/osac-project/osac-aap"
-    - AAP_PROJECT_GIT_BRANCH="05d9dff"
+    - AAP_EE_IMAGE=ghcr.io/osac-project/osac-aap:4f1ba397a8b6c9ef6fa8abe504baafceec8009db
+    - AAP_PROJECT_GIT_URI="https://github.com/osac-project/osac-aap"
+    - AAP_PROJECT_GIT_BRANCH=4f1ba39
 
 - name: cluster-fulfillment-ig
   options:
     labels:
-      cloudkit.openshift.io/project: cloudkit-aap
+      osac.openshift.io/project: osac-aap
   literals:
-    - CLOUDKIT_VM_OPERATIONS_STORAGE_CLASS="nfs-vm-dynamic"
+    - OSAC_VM_OPERATIONS_STORAGE_CLASS="nfs-vm-dynamic"
 
 - name: publish-templates-ig
   literals:
-    - CLOUDKIT_TEMPLATE_COLLECTIONS=osac.templates,osac.massopencloud
+    - OSAC_TEMPLATE_COLLECTIONS=osac.templates,osac.massopencloud
 
 images:
-  - name: ghcr.io/innabox/cloudkit-operator:latest
-    newName: ghcr.io/osac-project/osac-operator
-    digest: sha256:28e7b7999b12243f38a5fd363fce7d8718056b199e8d7e529704a77d5d231e5f
-  - name: ghcr.io/innabox/cloudkit-aap:latest
-    newName: ghcr.io/osac-project/osac-aap
-    digest: sha256:9e8c3549484a8d93a005bf8d544fb7e16e99a67483c1c1cc9125c0e478a6e9d1
-  - name: ghcr.io/innabox/fulfillment-service:main
-    newName: ghcr.io/osac-project/fulfillment-service
-    newTag: v0.0.35
+  - name: ghcr.io/osac-project/osac-operator:latest
+    digest: sha256:831ea9f34ac727ae42870daf69754e6308b85b11fb982fe11c0dae3331281fcd
+  - name: ghcr.io/osac-project/osac-aap:latest
+    digest: sha256:01c0157b308726a576f7087328347490b70794cfef9733539bbb21fbf2b30329
+  - name: ghcr.io/osac-project/fulfillment-service:main
+    newTag: v0.0.39
   - name: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
     newName: quay.io/openshift/origin-cli
     newTag: "4.20.0"
@@ -85,42 +82,42 @@ patches:
                 imagePullPolicy: Always
   - target:
       kind: Deployment
-      name: cloudkit-operator-controller-manager
+      name: osac-operator-controller-manager
     patch: |-
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: CLOUDKIT_CLUSTER_CREATE_WEBHOOK
-          value: http://innabox-eda-service:5000/create-hosted-cluster
+          name: OSAC_CLUSTER_CREATE_WEBHOOK
+          value: http://osac-eda-service:5000/create-hosted-cluster
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: CLOUDKIT_CLUSTER_DELETE_WEBHOOK
-          value: http://innabox-eda-service:5000/delete-hosted-cluster
+          name: OSAC_CLUSTER_DELETE_WEBHOOK
+          value: http://osac-eda-service:5000/delete-hosted-cluster
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: CLOUDKIT_MINIMUM_REQUEST_INTERVAL
+          name: OSAC_MINIMUM_REQUEST_INTERVAL
           value: "2m"
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: CLOUDKIT_COMPUTE_INSTANCE_PROVISION_WEBHOOK
-          value: http://innabox-eda-service:5000/create-compute-instance
+          name: OSAC_COMPUTE_INSTANCE_PROVISION_WEBHOOK
+          value: http://osac-eda-service:5000/create-compute-instance
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: CLOUDKIT_COMPUTE_INSTANCE_DEPROVISION_WEBHOOK
-          value: http://innabox-eda-service:5000/delete-compute-instance
+          name: OSAC_COMPUTE_INSTANCE_DEPROVISION_WEBHOOK
+          value: http://osac-eda-service:5000/delete-compute-instance
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: CLOUDKIT_FULFILLMENT_SERVER_ADDRESS
+          name: OSAC_FULFILLMENT_SERVER_ADDRESS
           value: fulfillment-api:8000
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: CLOUDKIT_FULFILLMENT_TOKEN_FILE
+          name: OSAC_FULFILLMENT_TOKEN_FILE
           value: /var/run/secrets/kubernetes.io/serviceaccount/token
       - op: replace
         path: /spec/template/spec/containers/0/imagePullPolicy
@@ -141,7 +138,7 @@ patches:
               path: ca-bundle.crt
             mountPath: /etc/pki/tls/certs
   # Override issuerUrl (base has :8001, we use port 443 via service mapping)
-  # and admin_subjects for innabox-devel namespace
+  # and admin_subjects for osac-devel namespace
   - patch: |
       apiVersion: authorino.kuadrant.io/v1beta3
       kind: AuthConfig
@@ -151,19 +148,19 @@ patches:
         authentication:
           keycloak-jwt:
             jwt:
-              issuerUrl: https://keycloak.keycloak.svc.cluster.local/realms/innabox
+              issuerUrl: https://keycloak.keycloak.svc.cluster.local/realms/osac
         authorization:
           fulfillment-api:
             opa:
               rego: |
                 import future.keywords.in
 
-                # Define admin subjects for innabox-devel namespace:
+                # Define admin subjects for osac-devel namespace:
                 admin_subjects := {
-                  "system:serviceaccount:innabox-devel:admin",
-                  "system:serviceaccount:innabox-devel:controller",
-                  "system:serviceaccount:innabox-devel:template-publisher",
-                  "system:serviceaccount:innabox-devel:cloudkit-operator-controller-manager",
+                  "system:serviceaccount:osac-devel:admin",
+                  "system:serviceaccount:osac-devel:controller",
+                  "system:serviceaccount:osac-devel:template-publisher",
+                  "system:serviceaccount:osac-devel:osac-operator-controller-manager",
                 }
 
                 # Get the gRPC method:

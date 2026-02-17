@@ -1,9 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: innabox
+namespace: osac
 
 metadata:
-  name: cloudkit-base
+  name: osac-base
 
 resources:
   - osac-aap/config/base
@@ -11,11 +11,11 @@ resources:
   - osac-fulfillment-service/manifests/overlays/openshift
   - hub-access
 
-# Common labels for all CloudKit components
+# Common labels for all OSAC components
 labels:
   - includeSelectors: true
     pairs:
-      app.kubernetes.io/part-of: cloudkit
+      app.kubernetes.io/part-of: osac
 
 images:
 - name: gomplate
@@ -25,13 +25,13 @@ images:
   newName: quay.io/sclorg/postgresql-15-c9s
   newTag: latest
 - name: fulfillment-service
-  newName: ghcr.io/innabox/fulfillment-service
+  newName: ghcr.io/osac-project/fulfillment-service
   newTag: latest
-- name: cloudkit-aap
-  newName: ghcr.io/innabox/cloudkit-aap
+- name: osac-aap
+  newName: ghcr.io/osac-project/osac-aap
   newTag: latest
-- name: cloudkit-operator
-  newName: ghcr.io/innabox/cloudkit-operator
+- name: osac-operator
+  newName: ghcr.io/osac-project/osac-operator
   newTag: latest
 - name: envoy
   newName: docker.io/envoyproxy/envoy

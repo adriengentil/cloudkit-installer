@@ -4,7 +4,7 @@ metadata:
   name: hub-access
 rules:
   - apiGroups:
-      - cloudkit.openshift.io
+      - osac.openshift.io
     resources:
       - clusterorders
     verbs:
@@ -16,13 +16,13 @@ rules:
       - update
       - watch
   - apiGroups:
-      - cloudkit.openshift.io
+      - osac.openshift.io
     resources:
       - clusterorders/status
     verbs:
       - get
   - apiGroups:
-      - cloudkit.openshift.io
+      - osac.openshift.io
     resources:
       - computeinstances
     verbs:
@@ -34,7 +34,7 @@ rules:
       - update
       - watch
   - apiGroups:
-      - cloudkit.openshift.io
+      - osac.openshift.io
     resources:
       - computeinstances/status
     verbs:
