@@ -7,11 +7,11 @@ spec:
   - extract:
       conversionStrategy: Default
       decodingStrategy: None
-      key: nerc/hypershift2/innabox/route53-credentials
+      key: nerc/hypershift2/osac/route53-credentials
   - extract:
       conversionStrategy: Default
       decodingStrategy: None
-      key: nerc/hypershift2/innabox/esi-credentials
+      key: nerc/hypershift2/osac/esi-credentials
   refreshInterval: 1h
   secretStoreRef:
     kind: ClusterSecretStore

@@ -69,12 +69,12 @@ oc cluster-info
 
 ```bash
 # Clone the repository
-git clone https://github.com/innabox/fulfillment-cli.git
+git clone https://github.com/osac-project/fulfillment-cli.git
 cd fulfillment-cli
 
 # Check the Go module configuration
 cat go.mod
-# Expected to see: module github.com/innabox/fulfillment-cli
+# Expected to see: module github.com/osac-project/fulfillment-cli
 
 # Download dependencies
 go mod download
@@ -130,17 +130,17 @@ mkdir -p ~/workspace/fulfillment
 cd ~/workspace/fulfillment
 
 # Clone related repositories
-git clone https://github.com/innabox/fulfillment-cli.git
-git clone https://github.com/innabox/cloudkit-installer.git
+git clone https://github.com/osac-project/fulfillment-cli.git
+git clone https://github.com/osac-project/osac-installer.git
 
 # Set up development environment variables
 export FULFILLMENT_CLI_ROOT=~/workspace/fulfillment/fulfillment-cli
-export CLOUDKIT_INSTALLER_ROOT=~/workspace/fulfillment/cloudkit-installer
+export OSAC_INSTALLER_ROOT=~/workspace/fulfillment/osac-installer
 export KUBECONFIG=~/workspace/fulfillment/kubeconfig
 
 # Add to ~/.bashrc for persistence
 echo 'export FULFILLMENT_CLI_ROOT=~/workspace/fulfillment/fulfillment-cli' >> ~/.bashrc
-echo 'export CLOUDKIT_INSTALLER_ROOT=~/workspace/fulfillment/cloudkit-installer' >> ~/.bashrc
+echo 'export OSAC_INSTALLER_ROOT=~/workspace/fulfillment/osac-installer' >> ~/.bashrc
 ```
 
 ## Configuration
@@ -293,7 +293,7 @@ oc get pods -n cert-manager
 **Step 3: Deploy Fulfillment Service**
 ```bash
 # Navigate to installer directory
-cd cloudkit-installer
+cd osac-installer
 
 # Review the kustomization
 cat overlays/development/kustomization.yaml
@@ -509,10 +509,10 @@ grpc-status: 0
 
 ## Hub Management
 
-### 1. Understanding Hubs in CloudKit Architecture
+### 1. Understanding Hubs in OSAC Architecture
 
 **What are Hubs?**
-Hubs are OpenShift/Kubernetes clusters that have been registered with the fulfillment service to act as target environments for cluster provisioning. When you create a cluster through the fulfillment-cli, the system creates a ClusterOrder Custom Resource Definition (CRD) in one of the registered hubs, where the cloudkit-operator processes the request.
+Hubs are OpenShift/Kubernetes clusters that have been registered with the fulfillment service to act as target environments for cluster provisioning. When you create a cluster through the fulfillment-cli, the system creates a ClusterOrder Custom Resource Definition (CRD) in one of the registered hubs, where the osac-operator processes the request.
 
 **Hub Architecture Flow:**
 ```mermaid
@@ -521,7 +521,7 @@ graph TD
     B -->|Store cluster request| C[PostgreSQL Database]
     B -->|Notify| D[fulfillment-controller]
     D -->|Create ClusterOrder CRD| E[Hub Cluster]
-    E -->|Process ClusterOrder| F[cloudkit-operator]
+    E -->|Process ClusterOrder| F[osac-operator]
     F -->|Provision cluster| G[New Cluster]
 ```
 
@@ -531,7 +531,7 @@ Before registering a hub, ensure the following requirements are met:
 
 **Hub Cluster Requirements:**
 - OpenShift/Kubernetes cluster with admin access
-- cloudkit-operator deployed and running
+- osac-operator deployed and running
 - ClusterOrder CRDs installed
 - Network connectivity to fulfillment-service
 
@@ -542,19 +542,19 @@ Create a service account with cluster-admin privileges for hub operations:
 # Set your hub cluster context
 export KUBECONFIG=/path/to/hub/kubeconfig
 
-# Create namespace for cloudkit-operator if it doesn't exist
-oc create namespace cloudkit-operator-system --dry-run=client -o yaml | oc apply -f -
+# Create namespace for osac-operator if it doesn't exist
+oc create namespace osac-operator-system --dry-run=client -o yaml | oc apply -f -
 
 # Create service account for hub access
-oc create serviceaccount hub-access -n cloudkit-operator-system
+oc create serviceaccount hub-access -n osac-operator-system
 
 # Grant cluster-admin permissions
 oc create clusterrolebinding hub-access-admin \
   --clusterrole=cluster-admin \
-  --serviceaccount=cloudkit-operator-system:hub-access
+  --serviceaccount=osac-operator-system:hub-access
 
 # Generate a long-lived token (24 hours recommended)
-HUB_TOKEN=$(oc create token hub-access -n cloudkit-operator-system --duration=24h)
+HUB_TOKEN=$(oc create token hub-access -n osac-operator-system --duration=24h)
 echo "Hub token: $HUB_TOKEN"
 ```
 
@@ -613,7 +613,7 @@ EOF
 ./fulfillment-cli create hub \
   --id production-hub-01 \
   --kubeconfig /tmp/hub-kubeconfig.yaml \
-  --namespace cloudkit-operator-system
+  --namespace osac-operator-system
 
 # Verify hub registration
 ./fulfillment-cli get hubs
@@ -677,19 +677,19 @@ EOF
 ./fulfillment-cli create hub \
   --id dev-hub \
   --kubeconfig /tmp/dev-hub-kubeconfig.yaml \
-  --namespace cloudkit-operator-system
+  --namespace osac-operator-system
 
 # Staging hub
 ./fulfillment-cli create hub \
   --id staging-hub \
   --kubeconfig /tmp/staging-hub-kubeconfig.yaml \
-  --namespace cloudkit-operator-system
+  --namespace osac-operator-system
 
 # Production hub
 ./fulfillment-cli create hub \
   --id prod-hub \
   --kubeconfig /tmp/prod-hub-kubeconfig.yaml \
-  --namespace cloudkit-operator-system
+  --namespace osac-operator-system
 
 # List all registered hubs
 ./fulfillment-cli get hubs --output table
@@ -716,7 +716,7 @@ wc -c /path/to/kubeconfig
 # If > 8KB, create minimal version
 
 # Create service account token
-TOKEN=$(oc create token hub-access -n cloudkit-operator-system --duration=24h)
+TOKEN=$(oc create token hub-access -n osac-operator-system --duration=24h)
 
 # Create minimal kubeconfig
 cat > /tmp/minimal-kubeconfig.yaml << EOF
@@ -745,8 +745,8 @@ EOF
 # Check hub cluster accessibility
 KUBECONFIG=/tmp/hub-kubeconfig.yaml oc get nodes
 
-# Verify cloudkit-operator is running
-KUBECONFIG=/tmp/hub-kubeconfig.yaml oc get pods -n cloudkit-operator-system
+# Verify osac-operator is running
+KUBECONFIG=/tmp/hub-kubeconfig.yaml oc get pods -n osac-operator-system
 
 # Check ClusterOrder CRDs
 KUBECONFIG=/tmp/hub-kubeconfig.yaml oc get crd | grep clusterorder
@@ -762,7 +762,7 @@ TOKEN_EXPIRY=$(echo $TOKEN | cut -d. -f2 | base64 -d 2>/dev/null | jq -r .exp)
 echo "Token expires: $(date -d @$TOKEN_EXPIRY)"
 
 # Refresh token and update hub
-NEW_TOKEN=$(oc create token hub-access -n cloudkit-operator-system --duration=24h)
+NEW_TOKEN=$(oc create token hub-access -n osac-operator-system --duration=24h)
 # Update kubeconfig with new token and re-register hub
 ```
 
@@ -775,7 +775,7 @@ Cluster Orders are Kubernetes Custom Resource Definitions (CRDs) that represent 
 
 1. Stores the request in the fulfillment-service database
 2. fulfillment-controller creates a ClusterOrder CRD in a selected hub
-3. cloudkit-operator in the hub processes the ClusterOrder
+3. osac-operator in the hub processes the ClusterOrder
 4. The actual cluster provisioning begins
 
 **ClusterOrder Lifecycle:**
@@ -849,24 +849,24 @@ watch -n 30 "./fulfillment-cli get cluster $CLUSTER_ID"
 export KUBECONFIG=/path/to/hub/kubeconfig
 
 # List all ClusterOrders
-oc get clusterorders -n cloudkit-operator-system
+oc get clusterorders -n osac-operator-system
 
 # Get specific ClusterOrder details
-oc describe clusterorder order-h9ppt -n cloudkit-operator-system
+oc describe clusterorder order-h9ppt -n osac-operator-system
 
 # View ClusterOrder YAML
-oc get clusterorder order-h9ppt -n cloudkit-operator-system -o yaml
+oc get clusterorder order-h9ppt -n osac-operator-system -o yaml
 ```
 
 **Example ClusterOrder Structure:**
 ```yaml
-apiVersion: cloudkit.openshift.io/v1alpha1
+apiVersion: osac.openshift.io/v1alpha1
 kind: ClusterOrder
 metadata:
   name: order-h9ppt
-  namespace: cloudkit-operator-system
+  namespace: osac-operator-system
   labels:
-    cloudkit.openshift.io/clusterorder-uuid: 0063916a-f82e-4eaa-a5de-f783d05294d4
+    osac.openshift.io/clusterorder-uuid: 0063916a-f82e-4eaa-a5de-f783d05294d4
 spec:
   templateID: example
   templateParameters: "{}"
@@ -883,9 +883,9 @@ status:
 
 ### 5. Cluster Order Troubleshooting
 
-**Check CloudKit Operator Logs:**
+**Check OSAC Operator Logs:**
 ```bash
-# View cloudkit-operator logs
+# View osac-operator logs
 oc logs -n foobar deployment/dev-controller-manager --tail=50 -f
 
 # Filter for specific ClusterOrder
@@ -908,8 +908,8 @@ oc logs -n foobar deployment/dev-fulfillment-controller | grep -i "hub\|connecti
 
 **Issue: ClusterOrder Stuck in Pending State**
 ```bash
-# Check if cloudkit-operator is running
-oc get pods -n foobar -l app.kubernetes.io/name=cloudkit-operator
+# Check if osac-operator is running
+oc get pods -n foobar -l app.kubernetes.io/name=osac-operator
 
 # Verify ClusterOrder CRDs are installed
 oc get crd | grep clusterorder
@@ -960,8 +960,8 @@ while true; do
 
     # Check ClusterOrder status in hub
     export KUBECONFIG="$HUB_KUBECONFIG"
-    CO_STATUS=$(oc get clusterorders -n cloudkit-operator-system \
-        -l "cloudkit.openshift.io/clusterorder-uuid=$CLUSTER_ID" \
+    CO_STATUS=$(oc get clusterorders -n osac-operator-system \
+        -l "osac.openshift.io/clusterorder-uuid=$CLUSTER_ID" \
         -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "NOT_FOUND")
 
     echo "$(date): CLI Status: $CLI_STATUS, ClusterOrder Status: $CO_STATUS"
@@ -979,8 +979,8 @@ while true; do
         ./fulfillment-cli describe cluster "$CLUSTER_ID"
 
         echo "=== ClusterOrder Details ==="
-        oc describe clusterorder -n cloudkit-operator-system \
-            -l "cloudkit.openshift.io/clusterorder-uuid=$CLUSTER_ID"
+        oc describe clusterorder -n osac-operator-system \
+            -l "osac.openshift.io/clusterorder-uuid=$CLUSTER_ID"
 
         exit 1
     fi
@@ -1337,7 +1337,7 @@ variables:
   KUBECONFIG_PATH: "/tmp/kubeconfig"
 
 before_script:
-  - curl -L "https://github.com/innabox/fulfillment-cli/releases/download/${FULFILLMENT_CLI_VERSION}/fulfillment-cli-linux-amd64" -o fulfillment-cli
+  - curl -L "https://github.com/osac-project/fulfillment-cli/releases/download/${FULFILLMENT_CLI_VERSION}/fulfillment-cli-linux-amd64" -o fulfillment-cli
   - chmod +x fulfillment-cli
   - mkdir -p ~/.config/fulfillment-cli
   - echo "$FULFILLMENT_CLI_CONFIG" > ~/.config/fulfillment-cli/config.json

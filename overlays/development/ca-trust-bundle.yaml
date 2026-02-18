@@ -37,4 +37,4 @@ spec:
       - key: kubernetes.io/metadata.name
         operator: In
         values:
-        - innabox-devel
+        - osac-devel
